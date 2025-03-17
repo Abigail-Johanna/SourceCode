@@ -1,103 +1,70 @@
 package medicationtracker;
 
-import javax.swing.*;
+import org.jdatepicker.impl.JDatePanelImpl;
+import org.jdatepicker.impl.JDatePickerImpl;
+import org.jdatepicker.impl.UtilDateModel;
+
+import java.sql.*;
+import java.util.Properties;
 import java.awt.*;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
-import java.time.ZoneId;
-import java.util.ArrayList;
-import java.util.List;
-
-class Medication {
-    private String name;
-    private String dosage;
-    private LocalDateTime startDateTime;
-    private int frequency;
-    private LocalDateTime nextDoseTime;
-    private int days;
-
-    public Medication(String name, String dosage, LocalDateTime startDateTime, int frequency, int days) {
-        this.name = name;
-        this.dosage = dosage;
-        this.startDateTime = startDateTime;
-        this.frequency = frequency;
-        this.days = days;
-        this.nextDoseTime = startDateTime.plusHours(frequency);
-    }
-
-    public String getName() { return name; }
-    public String getDosage() { return dosage; }
-    public LocalDateTime getNextDoseTime() { return nextDoseTime; }
-    public int getDays() { return days; }
-
-    public void updateNextDose() { nextDoseTime = nextDoseTime.plusHours(frequency); }
-    public String getNextDoseFormatted() {
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd h:mm a");
-        return nextDoseTime.format(formatter);
-    }
-
-    @Override
-    public String toString() {
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd h:mm a");
-        return String.format("<html><b>%s</b> (%s)<br>Start: %s<br>Every %d hours for %d days<br>Next dose: %s</html>",
-                name, dosage, startDateTime.format(formatter), frequency, days, getNextDoseFormatted());
-    }
-}
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import javax.swing.*;
+import javax.swing.table.DefaultTableModel;
 
 public class MedicationTracker {
     private JFrame frame;
-    private DefaultListModel<String> medicationListModel;
-    private List<Medication> medications;
-    private String patientName;
-    private DefaultListModel<String> historyListModel;
+    private Connection connection;
 
-   public MedicationTracker(String patientName) {
-    this.patientName = patientName;
-    medications = new ArrayList<>();
-    historyListModel = new DefaultListModel<>();
-    createGUI();
-}
+    // Database Credentials
+    private static final String DB_URL = "jdbc:mysql://localhost:3306/dump";
+    private static final String DB_USER = "root";
+    private static final String DB_PASS = "Lorenzo0910";
 
+    public MedicationTracker() {
+        connectToDatabase();
+        createGUI();
+    }
 
-    private void askForPatientName() {
-        patientName = JOptionPane.showInputDialog(null, "Enter patient's name:", "Patient Name", JOptionPane.PLAIN_MESSAGE);
-        if (patientName == null || patientName.trim().isEmpty()) {
-            patientName = "Unknown";
+    private void connectToDatabase() {
+        try {
+            connection = DriverManager.getConnection(DB_URL, DB_USER, DB_PASS);
+            System.out.println("✅ Connected to MySQL database.");
+        } catch (SQLException e) {
+            JOptionPane.showMessageDialog(null, "Database Connection Failed!", "Error", JOptionPane.ERROR_MESSAGE);
+            e.printStackTrace();
         }
     }
 
     private void createGUI() {
-        frame = new JFrame("Medication Tracker - " + patientName);
+        frame = new JFrame("Medication Tracker");
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.setExtendedState(JFrame.MAXIMIZED_BOTH);
         frame.setLayout(new BorderLayout());
 
+        // Header Panel
         JPanel headerPanel = new JPanel();
         headerPanel.setBackground(new Color(0, 102, 204));
-        JLabel patientLabel = new JLabel("Patient: " + patientName, SwingConstants.CENTER);
-        patientLabel.setFont(new Font("Arial", Font.BOLD, 24));
-        patientLabel.setForeground(Color.WHITE);
-        headerPanel.add(patientLabel);
+        JLabel titleLabel = new JLabel("Medication Tracker", SwingConstants.CENTER);
+        titleLabel.setFont(new Font("Arial", Font.BOLD, 24));
+        titleLabel.setForeground(Color.WHITE);
+        headerPanel.add(titleLabel);
         frame.add(headerPanel, BorderLayout.NORTH);
 
-        medicationListModel = new DefaultListModel<>();
-        JList<String> medicationList = new JList<>(medicationListModel);
-        medicationList.setFont(new Font("Arial", Font.PLAIN, 18));
-        frame.add(new JScrollPane(medicationList), BorderLayout.CENTER);
-
-        JPanel rightPanel = new JPanel(new BorderLayout());
-        JLabel historyLabel = new JLabel("History Bin", SwingConstants.CENTER);
-        historyLabel.setFont(new Font("Arial", Font.BOLD, 18));
-        rightPanel.add(historyLabel, BorderLayout.NORTH);
-        JList<String> historyList = new JList<>(historyListModel);
-        rightPanel.add(new JScrollPane(historyList), BorderLayout.CENTER);
-        frame.add(rightPanel, BorderLayout.EAST);
-
+        // Buttons Panel
         JPanel buttonPanel = new JPanel(new FlowLayout());
-        JButton addButton = createStyledButton("Add Medication", new Color(0, 76, 153));
-        addButton.addActionListener(e -> showAddMedicationDialog());
-        buttonPanel.add(addButton);
-        
+        JButton addPatientButton = createStyledButton("Add Patient", new Color(0, 153, 76));
+        JButton viewPatientsButton = createStyledButton("View Patients", new Color(0, 102, 204));
+       //JButton addMedicationButton = createStyledButton("Add Medication", new Color(0, 76, 153));
+        //JButton viewMedicineButton = createStyledButton("View Medication", new Color(0, 102, 204));
+
+        addPatientButton.addActionListener(this::showAddPatientDialog);
+        viewPatientsButton.addActionListener(this::showPatientList);
+
+        buttonPanel.add(addPatientButton);
+        buttonPanel.add(viewPatientsButton);
+        //buttonPanel.add(addMedicationButton);
+        //buttonPanel.add(viewMedicineButton);
         frame.add(buttonPanel, BorderLayout.SOUTH);
 
         frame.setVisible(true);
@@ -111,60 +78,133 @@ public class MedicationTracker {
         return button;
     }
 
-private void showAddMedicationDialog() {
-    JPanel panel = new JPanel(new GridLayout(6, 2, 10, 10));
-    JTextField nameField = new JTextField();
-    JTextField dosageField = new JTextField();
-    JTextField dateField = new JTextField("yyyy-MM-dd");
-    JTextField timeField = new JTextField("hh:mm a"); 
-    JTextField frequencyField = new JTextField();
-    JTextField daysField = new JTextField();
+    // 🎯 Add Patient
+    private void showAddPatientDialog(ActionEvent e) {
+        JPanel panel = new JPanel(new GridLayout(8, 3, 10, 10));
+        JTextField firstNameField = new JTextField();
+        JTextField middleNameField = new JTextField();
+        JTextField lastNameField = new JTextField();
+        JTextField ageField = new JTextField();
+        String[] genderOptions = {"Male", "Female"};
+        JComboBox<String> genderComboBox = new JComboBox<>(genderOptions);
+        JTextField contactNumberField = new JTextField();
+        JTextField addressField = new JTextField();
 
-    panel.add(new JLabel("Name:"));
-    panel.add(nameField);
-    panel.add(new JLabel("Dosage:"));
-    panel.add(dosageField);
-    panel.add(new JLabel("Start Date (yyyy-MM-dd):"));
-    panel.add(dateField);
-    panel.add(new JLabel("Start Time (hh:mm AM/PM):")); 
-    panel.add(timeField);
-    panel.add(new JLabel("Frequency (hours):"));
-    panel.add(frequencyField);
-    panel.add(new JLabel("Days of Medication:"));
-    panel.add(daysField);
+        
+        // 🎯 Birthdate Picker
+        UtilDateModel dateModel = new UtilDateModel();
+        Properties p = new Properties();
+        p.put("text.today", "Today");
+        p.put("text.month", "Month");
+        p.put("text.year", "Year");
+        JDatePanelImpl datePanel = new JDatePanelImpl(dateModel, p);
+        JDatePickerImpl birthdatePicker = new JDatePickerImpl(datePanel, new DateLabelFormatter());
 
-    int option = JOptionPane.showConfirmDialog(frame, panel, "Add Medication", JOptionPane.OK_CANCEL_OPTION);
-    if (option == JOptionPane.OK_OPTION) {
-        try {
-            String name = nameField.getText();
-            String dosage = dosageField.getText();
-            String dateTimeStr = dateField.getText().trim() + " " + timeField.getText().trim();
-            
-           
-            System.out.println("Parsing DateTime: " + dateTimeStr);
+        panel.add(new JLabel("First Name:")); panel.add(firstNameField);
+        panel.add(new JLabel("Middle Name:")); panel.add(middleNameField);
+        panel.add(new JLabel("Last Name:")); panel.add(lastNameField);
+        panel.add(new JLabel("Age:")); panel.add(ageField);
+        panel.add(new JLabel("Sex:")); panel.add(genderComboBox);
+        panel.add(new JLabel("Birthdate:")); panel.add(birthdatePicker); // 🎯 Birthdate field added
+        panel.add(new JLabel("Contact Number:")); panel.add(contactNumberField);
+        panel.add(new JLabel("Address:")); panel.add(addressField);
 
-            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd hh:mm a");
-            LocalDateTime startDateTime = LocalDateTime.parse(dateTimeStr, formatter);
-
-            int frequency = Integer.parseInt(frequencyField.getText().trim());
-            int days = Integer.parseInt(daysField.getText().trim());
-
-            addMedication(new Medication(name, dosage, startDateTime, frequency, days));
-        } catch (Exception e) {
-            e.printStackTrace(); 
-            JOptionPane.showMessageDialog(frame, "Invalid input: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+        int option = JOptionPane.showConfirmDialog(frame, panel, "Add Patient", JOptionPane.OK_CANCEL_OPTION);
+        if (option == JOptionPane.OK_OPTION) {
+            try (PreparedStatement stmt = connection.prepareStatement(
+                    "INSERT INTO patient_table (first_name, middle_name, last_name, age, sex, birthdate, contact_number, address) VALUES (?, ?, ?, ?, ?, ?,?,?)")) {
+                stmt.setString(1, firstNameField.getText());//FN    
+                stmt.setString(2, middleNameField.getText());//MN
+                stmt.setString(3, lastNameField.getText());//LN 
+                stmt.setInt(4, Integer.parseInt(ageField.getText()));//A
+                stmt.setString(5, (String) genderComboBox.getSelectedItem());//G
+                
+                    // 🎯 Convert selected birthdate to SQL Date format
+            if (dateModel.getValue() != null) {
+                java.sql.Date birthdate = new java.sql.Date(dateModel.getValue().getTime());
+                stmt.setDate(6, birthdate);
+            } else {
+                stmt.setNull(6, java.sql.Types.DATE);
+            }
+                
+                
+                stmt.setString(7, contactNumberField.getText());//CN
+                stmt.setString(8, addressField.getText());//AS
+                stmt.executeUpdate();
+                
+                JOptionPane.showMessageDialog(frame, "✅ Patient Added Successfully!");
+            } catch (SQLException ex) {
+                ex.printStackTrace();
+            }
         }
     }
-}
 
-   public static void main(String[] args) {
-    SwingUtilities.invokeLater(() -> new MedicationTracker("Unknown"));
+    // 🎯 View, Update, and Delete Patients
+    private void showPatientList(ActionEvent e) {
+        JFrame tableFrame = new JFrame("Patient List");
+        tableFrame.setSize(800, 400);
+
+        DefaultTableModel model = new DefaultTableModel();
+        JTable table = new JTable(model);
+        model.addColumn("patient_id");
+        model.addColumn("First Name");
+        model.addColumn("Middle Name");
+        model.addColumn("Last Name");
+        model.addColumn("Age");
+        model.addColumn("Birthdate");
+        model.addColumn("Sex");
+        model.addColumn("Contact");
+        model.addColumn("Address");
+
+        try (Statement stmt = connection.createStatement();
+             ResultSet rs = stmt.executeQuery("SELECT * FROM patient_table")) {
+            while (rs.next()) {
+                model.addRow(new Object[]{
+                        rs.getInt("patient_id"),
+                        rs.getString("first_name"),
+                        rs.getString("middle_name"),
+                        rs.getString("last_name"),
+                        rs.getInt("age"),
+                        rs.getDate("birthdate"),
+                        rs.getString("sex"),
+                        rs.getString("contact_number"),
+                        rs.getString("address")
+                });
+            }
+        } catch (SQLException ex) {
+            ex.printStackTrace();
+        }
+
+        JButton deleteButton = new JButton("Delete");
+        deleteButton.addActionListener(event -> {
+            int selectedRow = table.getSelectedRow();
+            if (selectedRow != -1) {
+                int id = (int) model.getValueAt(selectedRow, 0);
+                try (PreparedStatement stmt = connection.prepareStatement("DELETE FROM patient_table WHERE patient_id = ?")) {
+                    stmt.setInt(1, id);
+                    stmt.executeUpdate();
+                    model.removeRow(selectedRow);
+                    JOptionPane.showMessageDialog(frame, "✅ Patient Deleted Successfully!");
+                } catch (SQLException ex) {
+                    ex.printStackTrace();
+                }
+            }
+        });
+
+        tableFrame.add(new JScrollPane(table), BorderLayout.CENTER);
+        tableFrame.add(deleteButton, BorderLayout.SOUTH);
+        tableFrame.setVisible(true);
     }
 
-    private void addMedication(Medication medication) {
-       medications.add(medication);
-       medicationListModel.addElement(medication.toString());
-       JOptionPane.showMessageDialog(frame, "Medication Added:\n" + medication.toString(), "Success", JOptionPane.INFORMATION_MESSAGE);
+    public static void main(String[] args) {
+        SwingUtilities.invokeLater(MedicationTracker::new);
+    }
+      private void showAddMedicineDialog(ActionEvent e) {
+        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
     }
 }
+
+
+
+
 
