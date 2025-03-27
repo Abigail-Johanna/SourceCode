@@ -1,0 +1,175 @@
+import javax.swing.*;
+import java.awt.*;
+import java.awt.event.*;
+
+public class SignUpForm extends JFrame {
+
+    // Custom panel that paints a gradient background
+    class BackgroundPanel extends JPanel {
+        @Override
+        protected void paintComponent(Graphics g) {
+            super.paintComponent(g);
+            // Convert to Graphics2D for advanced operations
+            Graphics2D g2d = (Graphics2D) g;
+            int width = getWidth();
+            int height = getHeight();
+            // Define two colors for the gradient: a soft mint green and white
+            Color color1 = new Color(200, 255, 200);
+            Color color2 = Color.WHITE;
+            // Set up a gradient from the top-left to the bottom-right
+            GradientPaint gp = new GradientPaint(0, 0, color1, width, height, color2);
+            g2d.setPaint(gp);
+            g2d.fillRect(0, 0, width, height);
+        }
+    }
+    
+    public SignUpForm() {
+        // Set up frame properties
+        setTitle("Sign Up Form");
+        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        setSize(400, 450);  // Increased height to accommodate additional fields
+        setLocationRelativeTo(null);
+        
+        
+
+        // Use our custom BackgroundPanel instead of a regular JPanel
+        BackgroundPanel panel = new BackgroundPanel();
+        panel.setLayout(new GridBagLayout());
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.insets = new Insets(10, 10, 10, 10);
+
+        // First Name Label and Text Field
+        gbc.gridx = 0;
+        gbc.gridy = 0;
+        gbc.anchor = GridBagConstraints.WEST;
+        panel.add(new JLabel("First Name:"), gbc);
+
+        gbc.gridx = 1;
+        JTextField firstNameField = new JTextField(20);
+        panel.add(firstNameField, gbc);
+
+        // Last Name Label and Text Field
+        gbc.gridx = 0;
+        gbc.gridy = 1;
+        panel.add(new JLabel("Last Name:"), gbc);
+
+        gbc.gridx = 1;
+        JTextField lastNameField = new JTextField(20);
+        panel.add(lastNameField, gbc);
+
+        // Username Label and Text Field
+        gbc.gridx = 0;
+        gbc.gridy = 2;
+        panel.add(new JLabel("Username:"), gbc);
+
+        gbc.gridx = 1;
+        JTextField usernameField = new JTextField(20);
+        panel.add(usernameField, gbc);
+
+        // Email Label and Text Field
+        gbc.gridx = 0;
+        gbc.gridy = 3;
+        panel.add(new JLabel("Email:"), gbc);
+
+        gbc.gridx = 1;
+        JTextField emailField = new JTextField(20);
+        panel.add(emailField, gbc);
+
+        // Contact Number Label and Text Field
+        gbc.gridx = 0;
+        gbc.gridy = 4;
+        panel.add(new JLabel("Contact Number:"), gbc);
+
+        gbc.gridx = 1;
+        JTextField contactField = new JTextField(20);
+        panel.add(contactField, gbc);
+
+        // Position Label and ComboBox (Doctor or Nurse)
+        gbc.gridx = 0;
+        gbc.gridy = 5;
+        panel.add(new JLabel("Position:"), gbc);
+
+        gbc.gridx = 1;
+        String[] positions = { "Doctor", "Secretary" };
+        JComboBox<String> positionComboBox = new JComboBox<>(positions);
+        panel.add(positionComboBox, gbc);
+
+        // Password Label and Password Field
+        gbc.gridx = 0;
+        gbc.gridy = 6;
+        panel.add(new JLabel("Password:"), gbc);
+
+        gbc.gridx = 1;
+        JPasswordField passwordField = new JPasswordField(20);
+        panel.add(passwordField, gbc);
+
+        // Confirm Password Label and Password Field
+        gbc.gridx = 0;
+        gbc.gridy = 7;
+        panel.add(new JLabel("Confirm Password:"), gbc);
+
+        gbc.gridx = 1;
+        JPasswordField confirmPasswordField = new JPasswordField(20);
+        panel.add(confirmPasswordField, gbc);
+
+        // Sign Up Button that spans two columns
+        gbc.gridx = 0;
+        gbc.gridy = 8;
+        gbc.gridwidth = 2;
+        gbc.anchor = GridBagConstraints.CENTER;
+        JButton signUpButton = new JButton("Sign Up");
+        signUpButton.setBackground(new Color(152, 255, 152));
+        panel.add(signUpButton, gbc);
+
+        // Button Action Listener for validation
+        signUpButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                // Retrieve and trim input values
+                String firstName = firstNameField.getText().trim();
+                String lastName = lastNameField.getText().trim();
+                String username = usernameField.getText().trim();
+                String email = emailField.getText().trim();
+                String contactNumber = contactField.getText().trim();
+                String position = (String) positionComboBox.getSelectedItem();
+                String password = new String(passwordField.getPassword());
+                String confirmPassword = new String(confirmPasswordField.getPassword());
+
+                // Validate that no fields are empty
+                if (firstName.isEmpty() || lastName.isEmpty() || username.isEmpty() ||
+                    email.isEmpty() || contactNumber.isEmpty() ||
+                    password.isEmpty() || confirmPassword.isEmpty()) {
+                    JOptionPane.showMessageDialog(panel, "All fields must be filled out.",
+                            "Input Error", JOptionPane.ERROR_MESSAGE);
+                    return;
+                }
+
+                // Check if both password fields match
+                if (!password.equals(confirmPassword)) {
+                    JOptionPane.showMessageDialog(panel, "Passwords do not match.",
+                            "Input Error", JOptionPane.ERROR_MESSAGE);
+                    return;
+                }
+
+                // If validation passes, display success message
+                JOptionPane.showMessageDialog(panel, "Sign up successful for " + username +
+                        " (" + firstName + " " + lastName + ") as a " + position +
+                        "!\nContact Number: " + contactNumber,
+                        "Success", JOptionPane.INFORMATION_MESSAGE);
+            }
+        });
+
+        add(panel);
+        setVisible(true);
+    }
+
+    public static void main(String[] args) {
+        // Launch the form on the Event Dispatch Thread (EDT)
+        SwingUtilities.invokeLater(new Runnable() {
+            @Override
+            public void run() {
+                new SignUpForm();
+            }
+        });
+    }
+}
