@@ -152,9 +152,7 @@ public class SignUpForm extends JFrame {
                 }
 
                 // If validation passes, display success message
-                JOptionPane.showMessageDialog(panel, "Sign up successful for " + username +
-                        " (" + firstName + " " + lastName + ") as a " + position +
-                        "!\nContact Number: " + contactNumber,
+                JOptionPane.showMessageDialog(panel, "Sign up successful for " + username,
                         "Success", JOptionPane.INFORMATION_MESSAGE);
             }
         });
