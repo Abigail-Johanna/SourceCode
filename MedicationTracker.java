@@ -16,8 +16,8 @@ public class MedicationTracker {
     private Connection connection;
 
     private static final String DB_URL = "jdbc:mysql://localhost:3306/dump";
-    private static final String DB_USER = "root";
-    private static final String DB_PASS = "Lorenzo0910";
+    private static final String DB_USER = "";
+    private static final String DB_PASS = "";
 
     public MedicationTracker() {
         connectToDatabase();
