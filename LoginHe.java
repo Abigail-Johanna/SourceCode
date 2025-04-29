@@ -19,7 +19,7 @@ public class LoginHe extends JFrame {
             @Override
             protected void paintComponent(Graphics g) {
                 super.paintComponent(g);
-                g.setColor(new Color(245, 245, 245)); // Dirty white
+                g.setColor(new Color(230, 230, 230)); // Dirty white
                 g.fillRect(0, 0, getWidth(), getHeight());
             }
         };
@@ -28,7 +28,7 @@ public class LoginHe extends JFrame {
         gbc.insets = new Insets(10, 10, 10, 10);
         gbc.fill = GridBagConstraints.HORIZONTAL;
 
-        // Username field
+        // username 
         gbc.gridx = 0;
         gbc.gridy = 0;
         backgroundPanel.add(new JLabel("Username:"), gbc);
@@ -36,7 +36,7 @@ public class LoginHe extends JFrame {
         usernameField = new JTextField(15);
         backgroundPanel.add(usernameField, gbc);
 
-        // Password field
+        // password 
         gbc.gridx = 0;
         gbc.gridy = 1;
         backgroundPanel.add(new JLabel("Password:"), gbc);
@@ -44,7 +44,7 @@ public class LoginHe extends JFrame {
         passwordField = new JPasswordField(15);
         backgroundPanel.add(passwordField, gbc);
 
-        // Position dropdown
+        // position 
         gbc.gridx = 0;
         gbc.gridy = 2;
         backgroundPanel.add(new JLabel("Position:"), gbc);
@@ -52,7 +52,7 @@ public class LoginHe extends JFrame {
         positionCombo = new JComboBox<>(new String[]{"Doctor", "Nurse"});
         backgroundPanel.add(positionCombo, gbc);
 
-        // Login button
+        // button
         gbc.gridx = 0;
         gbc.gridy = 3;
         gbc.gridwidth = 2;
