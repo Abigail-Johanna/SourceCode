@@ -13,13 +13,12 @@ public class LoginHe extends JFrame {
         setSize(400, 300);
         setDefaultCloseOperation(EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
-
-        // Custom panel with solid dirty white background
+        
         JPanel backgroundPanel = new JPanel() {
             @Override
             protected void paintComponent(Graphics g) {
                 super.paintComponent(g);
-                g.setColor(new Color(230, 230, 230)); // Dirty white
+                g.setColor(new Color(230, 230, 230)); 
                 g.fillRect(0, 0, getWidth(), getHeight());
             }
         };
