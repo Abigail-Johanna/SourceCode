@@ -16,8 +16,8 @@ public class MedicationTracker {
     private Connection connection;
 
     private static final String DB_URL = "jdbc:mysql://localhost:3306/dump";
-    private static final String DB_USER = "";
-    private static final String DB_PASS = "";
+    private static final String DB_USER = "root";
+    private static final String DB_PASS = "Lorenzo0910";
 
     public MedicationTracker() {
         connectToDatabase();
@@ -45,18 +45,18 @@ public class MedicationTracker {
         frame.setLayout(new BorderLayout());
 
         JPanel headerPanel = new JPanel();
-        headerPanel.setBackground(new Color(0, 102, 204));
-        JLabel titleLabel = new JLabel("Medication Tracker", SwingConstants.CENTER);
+        headerPanel.setBackground(new Color(4, 178, 217));
+        JLabel titleLabel = new JLabel("Clinic Medication Tracker", SwingConstants.CENTER);
         titleLabel.setFont(new Font("Arial", Font.BOLD, 24));
-        titleLabel.setForeground(Color.WHITE);
+        titleLabel.setForeground(Color.BLACK);
         headerPanel.add(titleLabel);
         frame.add(headerPanel, BorderLayout.NORTH);
 
         JPanel buttonPanel = new JPanel(new FlowLayout());
-        JButton addPatientButton = createStyledButton("Add Patient", new Color(0, 153, 76));
-        JButton viewPatientsButton = createStyledButton("View Patients", new Color(0, 102, 204));
-        JButton addMedicineButton = createStyledButton("Add Medicine", new Color(153, 76, 0));
-        JButton addMedicationButton = createStyledButton("View Medication", new Color(0, 76, 153));
+        JButton addPatientButton = createStyledButton("Add Patient", new Color(79, 195, 247));
+        JButton viewPatientsButton = createStyledButton("View Patients", new Color(79, 195, 247));
+        JButton addMedicineButton = createStyledButton("Add Medicine", new Color(79, 195, 247));
+        JButton addMedicationButton = createStyledButton("View Medication", new Color(79, 195, 247));
 
         addPatientButton.addActionListener(this::showAddPatientDialog);
         viewPatientsButton.addActionListener(this::showPatientList);
@@ -75,7 +75,7 @@ public class MedicationTracker {
     private JButton createStyledButton(String text, Color backgroundColor) {
         JButton button = new JButton(text);
         button.setBackground(backgroundColor);
-        button.setForeground(Color.WHITE);
+        button.setForeground(Color.BLACK);
         button.setFont(new Font("Arial", Font.BOLD, 18));
         return button;
     }
@@ -209,8 +209,8 @@ public class MedicationTracker {
         JSpinner.DateEditor timeEditor = new JSpinner.DateEditor(timeSpinner, "HH:mm:ss");
         timeSpinner.setEditor(timeEditor);
 
-        panel.add(new JLabel("Name:")); panel.add(nameField);
-        panel.add(new JLabel("Brand:")); panel.add(brandField);
+        panel.add(new JLabel("Medicine Name:")); panel.add(nameField);
+        panel.add(new JLabel("Medicine Brand:")); panel.add(brandField);
         panel.add(new JLabel("Days Of Intake:")); panel.add(daysOfIntakeField);
         panel.add(new JLabel("Start Date:")); panel.add(birthdatePicker);
         panel.add(new JLabel("Time:")); panel.add(timeSpinner);
@@ -230,10 +230,10 @@ public class MedicationTracker {
                 } else {
                     stmt.setNull(4, java.sql.Types.DATE);
                 }
-                  java.util.Date selectedTime = (java.util.Date) timeSpinner.getValue();
-        long timeInMillis = selectedTime.getTime();
-        java.sql.Time sqlTime = new java.sql.Time(timeInMillis);
-        stmt.setTime(5, sqlTime);
+                   // Get the selected time from the spinner and convert it to java.sql.Time
+            java.util.Date selectedTime = (java.util.Date) timeSpinner.getValue();
+            java.sql.Time sqlTime = new java.sql.Time(selectedTime.getTime());
+            stmt.setTime(5, sqlTime); // Set the time in the prepared statement
                 stmt.setInt(6, Integer.parseInt(frequencyField.getText()));
 
                 stmt.executeUpdate();
@@ -251,8 +251,8 @@ public class MedicationTracker {
         DefaultTableModel model = new DefaultTableModel();
         JTable table = new JTable(model);
         model.addColumn("medicine_id");
-        model.addColumn("Name");
-        model.addColumn("Brand");
+        model.addColumn("Medicine Name");
+        model.addColumn("Medicine Brand");
         model.addColumn("Days of Intake");
         model.addColumn("Start Date");
         model.addColumn("Time");
