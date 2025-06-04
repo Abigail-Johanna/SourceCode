@@ -13,36 +13,20 @@ import java.util.Properties;
 
 public class MedicationTracker {
     private JFrame frame;
-    private Connection connection;
-
-    private static final String DB_URL = "jdbc:mysql://localhost:3306/dump";
-    private static final String DB_USER = "root";
-    private static final String DB_PASS = "Lorenzo0910";
+    private final Connection connection;
 
     private DefaultTableModel patientTableModel;
     private DefaultTableModel medicineTableModel;
 
-    public MedicationTracker() {
-        connectToDatabase();
+    public MedicationTracker(Connection connection) {
+        this.connection = connection;
         createGUI();
         loadPatientData();
         loadMedicineData();
+        frame.setVisible(true);
     }
 
-    MedicationTracker(Connection connection) {
-        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
-    }
-
-    private void connectToDatabase() {
-        try {
-            connection = DriverManager.getConnection(DB_URL, DB_USER, DB_PASS);
-            System.out.println("✅ Connected to MySQL database.");
-        } catch (SQLException e) {
-            JOptionPane.showMessageDialog(null, "Database Connection Failed!", "Error", JOptionPane.ERROR_MESSAGE);
-            e.printStackTrace();
-        }
-    }
-
+ 
     private void createGUI() {
         frame = new JFrame("Medication Tracker");
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -57,10 +41,10 @@ public class MedicationTracker {
         headerPanel.add(titleLabel);
         frame.add(headerPanel, BorderLayout.NORTH);
 
-        // Tabbed Pane for Patients and Medicines Dashboard
+        
         JTabbedPane tabbedPane = new JTabbedPane();
 
-        // --- Patients panel with table and delete button
+        
         JPanel patientPanel = new JPanel(new BorderLayout());
         patientTableModel = new DefaultTableModel();
         JTable patientTable = new JTable(patientTableModel);
@@ -181,7 +165,7 @@ public class MedicationTracker {
                         rs.getString("address")
                 });
             }
-        } catch (SQLException ex) {
+        } catch (java.sql.SQLException ex) {
             ex.printStackTrace();
         }
     }
@@ -202,7 +186,7 @@ public class MedicationTracker {
                         rs.getInt("frequency")
                 });
             }
-        } catch (SQLException ex) {
+        } catch (java.sql.SQLException ex) {
             ex.printStackTrace();
         }
     }
@@ -216,7 +200,7 @@ public class MedicationTracker {
             } else {
                 JOptionPane.showMessageDialog(frame, "Patient delete failed, patient not found.", "Error", JOptionPane.ERROR_MESSAGE);
             }
-        } catch (SQLException ex) {
+        } catch (java.sql.SQLException ex) {
             ex.printStackTrace();
             JOptionPane.showMessageDialog(frame, "Error deleting patient: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
         }
@@ -231,7 +215,7 @@ public class MedicationTracker {
             } else {
                 JOptionPane.showMessageDialog(frame, "Medicine delete failed, medicine not found.", "Error", JOptionPane.ERROR_MESSAGE);
             }
-        } catch (SQLException ex) {
+        } catch (java.sql.SQLException ex) {
             ex.printStackTrace();
             JOptionPane.showMessageDialog(frame, "Error deleting medicine: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
         }
@@ -285,8 +269,8 @@ public class MedicationTracker {
                 stmt.setString(8, addressField.getText());
                 stmt.executeUpdate();
                 JOptionPane.showMessageDialog(frame, "✅ Patient Added Successfully!");
-                loadPatientData(); // Refresh the patient table after insert
-            } catch (SQLException ex) {
+                loadPatientData(); 
+            } catch (java.sql.SQLException ex) {
                 ex.printStackTrace();
                 JOptionPane.showMessageDialog(frame, "Error adding patient: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
             }
@@ -310,7 +294,7 @@ public class MedicationTracker {
 
         SpinnerDateModel timeModel = new SpinnerDateModel();
         JSpinner timeSpinner = new JSpinner(timeModel);
-        JSpinner.DateEditor timeEditor = new JSpinner.DateEditor(timeSpinner, "HH:mm:ss");
+        JSpinner.DateEditor timeEditor = new JSpinner.DateEditor(timeSpinner, "HH:mm");
         timeSpinner.setEditor(timeEditor);
 
         panel.add(new JLabel("Medicine Name:")); panel.add(nameField);
@@ -342,15 +326,11 @@ public class MedicationTracker {
                 stmt.executeUpdate();
                 JOptionPane.showMessageDialog(frame, "✅ Medicine Added Successfully!");
                 loadMedicineData(); // Refresh the medicine table after insert
-            } catch (SQLException ex) {
+            } catch (java.sql.SQLException ex) {
                 ex.printStackTrace();
                 JOptionPane.showMessageDialog(frame, "Error adding medicine: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
             }
         }
-    }
-
-    public static void main(String[] args) {
-        SwingUtilities.invokeLater(MedicationTracker::new);
     }
 }
 
